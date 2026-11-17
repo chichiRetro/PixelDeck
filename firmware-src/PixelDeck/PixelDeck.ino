@@ -36,7 +36,7 @@
 #define LED_GRID         true   // gaps between dots (LED-matrix look)
 #define RGB_LED_ENABLE   true   // pulse the on-board RGB LED
 #define HOSTNAME         "pxldeck"
-#define FW_VERSION       "1.0"
+#define FW_VERSION       "1.1"
 #define MAX_IMG          128    // max image size (px)
 #define GLITCH_FX        false  // glitch transition effect
 #define MOTION_MS        180    // bob / sparkle frame time for still images
@@ -100,7 +100,7 @@ static const uint16_t TKEY = 0x0020;   // "transparent" marker
 // ===================== themes =====================
 // colors: bg, primary, secondary, highlight, dim, panel, scan, off(unlit dot), text, good, pattern
 // pattern: 0 none 1 stars 2 checker 3 hearts 4 polka 5 grass 6 waves 7 sky gradient 8 bricks 9 grid 10 flowers
-enum { P_NONE, P_STARS, P_CHECK, P_HEART, P_POLKA, P_GRASS, P_WAVE, P_SKY, P_BRICK, P_GRID, P_FLOWER, P_SNOW, P_NOTE, P_LEAF, P_LCD, P_STRIPE };
+enum { P_NONE, P_STARS, P_CHECK, P_HEART, P_POLKA, P_GRASS, P_WAVE, P_SKY, P_BRICK, P_GRID, P_FLOWER, P_SNOW, P_NOTE, P_LEAF, P_LCD, P_STRIPE, P_SPRINKLE };
 struct Theme { uint8_t c[11][3]; uint8_t pat; };
 static const Theme THEMES[] = {
   {{{0,0,0},{46,249,255},{255,43,214},{248,243,43},{120,100,190},{40,24,80},{10,6,22},{12,9,26},{216,247,255},{60,255,140},{24,18,48}}, P_GRID},          // 0 NEON CITY
@@ -141,6 +141,11 @@ static const Theme THEMES[] = {
   {{{30,20,4},{255,200,40},{255,120,40},{255,250,180},{170,140,80},{70,50,16},{40,28,6},{44,30,8},{255,245,220},{255,210,60},{80,58,18}}, P_STRIPE},           // 32 ELECTRO POP
   {{{10,8,34},{120,140,255},{255,110,150},{255,220,240},{110,100,170},{36,30,80},{16,12,44},{18,14,48},{230,230,255},{150,170,255},{40,34,90}}, P_NOTE},        // 33 MIDNIGHT SYNTH
   {{{20,16,36},{160,240,255},{230,160,255},{255,255,255},{140,130,190},{50,44,84},{26,22,46},{28,24,50},{240,240,255},{180,255,230},{60,52,100}}, P_GRID},      // 34 HOLOGRAM
+  // ---- sweets & pink ----
+  {{{255,244,248},{250,150,185},{140,215,195},{250,190,120},{225,175,190},{255,222,232},{255,236,242},{255,240,246},{130,70,90},{140,215,195},{255,214,226}}, P_SPRINKLE}, // 35 ICE CREAM
+  {{{46,26,22},{255,150,190},{140,230,210},{255,230,190},{150,110,100},{80,50,44},{56,34,30},{60,38,32},{255,235,225},{140,230,210},{90,56,48}}, P_SPRINKLE},       // 36 MIDNIGHT SUNDAE
+  {{{255,240,245},{245,150,185},{255,196,214},{240,120,165},{230,170,190},{255,218,230},{255,232,240},{255,236,243},{140,60,90},{245,140,180},{255,214,228}}, P_HEART},  // 37 PALE PINK
+  {{{252,242,248},{225,150,200},{175,165,240},{250,160,195},{205,175,210},{240,220,238},{248,234,244},{252,240,248},{90,60,100},{170,190,245},{240,218,236}}, P_FLOWER}, // 38 UTAKATA
 };
 static const int THEME_COUNT = sizeof(THEMES) / sizeof(THEMES[0]);
 int themeIdx = 0;
@@ -260,10 +265,10 @@ void drawFrame() {
 }
 
 // ---------- theme decorations (right side) ----------
-// top: 0 reactor 1 heart 2 moon 3 compass 4 sun 5 flower 6 gem 7 sunset 8 handheld 9 pumpkin 10 note 11 mic 12 snowman 13 tree
-// mid: 0 eq 1 bubbles 2 petals 3 heart meter 4 waves 5 twinkle 6 grass 7 snow 8 leaves 9 notes 10 fireworks 11 bats
-static const uint8_t THEME_TOP[] = {0, 7, 0, 0, 0, 7, 0, 5, 4, 2, 1, 1, 6, 1, 3, 6, 4, 4, 2, 6,  8, 8, 8,  5, 2, 4, 9, 12, 13, 4,  11, 10, 11, 10, 11};
-static const uint8_t THEME_MID[] = {0, 0, 0, 0, 0, 4, 0, 2, 1, 5, 1, 2, 5, 2, 6, 3, 6, 4, 5, 5,  0, 3, 5,  2, 10, 8, 11, 7, 7, 5,  9, 0, 0, 9, 5};
+// top: 0 reactor 1 heart 2 moon 3 compass 4 sun 5 flower 6 gem 7 sunset 8 handheld 9 pumpkin 10 note 11 mic 12 snowman 13 tree 14 ice cream
+// mid: 0 eq 1 bubbles 2 petals 3 heart meter 4 waves 5 twinkle 6 grass 7 snow 8 leaves 9 notes 10 fireworks 11 bats 12 sprinkles
+static const uint8_t THEME_TOP[] = {0, 7, 0, 0, 0, 7, 0, 5, 4, 2, 1, 1, 6, 1, 3, 6, 4, 4, 2, 6,  8, 8, 8,  5, 2, 4, 9, 12, 13, 4,  11, 10, 11, 10, 11,  14, 14, 1, 5};
+static const uint8_t THEME_MID[] = {0, 0, 0, 0, 0, 4, 0, 2, 1, 5, 1, 2, 5, 2, 6, 3, 6, 4, 5, 5,  0, 3, 5,  2, 10, 8, 11, 7, 7, 5,  9, 0, 0, 9, 5,  12, 12, 2, 1};
 LGFX_Sprite sTop(&lcd), sMid(&lcd);
 static const int DW = 88, TOP_H = 82, MID_Y = 86, MID_H = 54;
 static inline uint32_t hsh(uint32_t a) { a ^= a >> 16; a *= 0x7feb352dU; a ^= a >> 15; a *= 0x846ca68bU; a ^= a >> 16; return a; }
@@ -394,6 +399,19 @@ void drawTop(uint32_t t) {
       for (int i = 0; i < 8; i++) { uint16_t c = ((t / 400 + i) % 3 == 0) ? C_YL : (i & 1 ? C_CY : C_MG); sp.fillCircle(cx + orn[i][0], cy + orn[i][1], 2, c); }
       spark(sp, cx, cy - 32, 2 + ((t / 300) & 1), C_YL);
     } break;
+    case 14: {  // ice cream cone
+      int wob = (int)(sin(t / 500.0f) * 2);
+      sp.fillTriangle(cx - 13, cy + 2, cx + 13, cy + 2, cx, cy + 38, 0xEDCB);
+      for (int k = -2; k <= 2; k++) { sp.drawLine(cx + k * 6 - 6, cy + 2, cx + k * 3 + 3, cy + 24, 0xC4E6); sp.drawLine(cx + k * 6 + 6, cy + 2, cx + k * 3 - 3, cy + 24, 0xC4E6); }
+      sp.fillCircle(cx + wob, cy - 4, 15, C_MG);
+      sp.fillCircle(cx + wob, cy - 20, 13, C_CY);
+      sp.fillCircle(cx - 6 + wob, cy + 8, 4, C_MG); sp.fillCircle(cx + 7 + wob, cy + 9, 3, C_MG);
+      sp.fillCircle(cx + wob + 3, cy - 36, 4, 0xF8A6); sp.drawLine(cx + wob + 3, cy - 40, cx + wob + 7, cy - 45, C_GRN);
+      static const int8_t sp8[8][3] = {{-8, -24, 0}, {4, -26, 1}, {-2, -16, 2}, {8, -18, 0}, {-9, -6, 1}, {6, -2, 2}, {0, -10, 0}, {-4, 2, 1}};
+      for (int i = 0; i < 8; i++) { uint16_t c = sp8[i][2] == 0 ? C_YL : sp8[i][2] == 1 ? 0xFFFF : C_GRN; sp.fillRect(cx + sp8[i][0] + wob, cy + sp8[i][1], 3, 1, c); }
+      sp.fillCircle(cx - 6 + wob, cy - 24, 2, 0xFFFF);
+      for (int k = 0; k < 3; k++) { uint32_t h = hsh(k + 77); int ph = (t / 200 + h) % 6; spark(sp, 6 + h % 76, 4 + (h >> 9) % 74, ph == 2 ? 2 : ph == 1 ? 1 : 0, C_YL); }
+    } break;
     case 7: {  // retro sunset
       int scy = cy + 10;
       for (int y = -28; y <= 0; y++) {
@@ -479,6 +497,13 @@ void drawMid(uint32_t t) {
         sp.fillRect(x - 1, y - 1, 3, 3, C_MG);
         sp.drawLine(x - 1, y, x - 6, up ? y - 4 : y + 2, C_MG); sp.drawLine(x + 1, y, x + 6, up ? y - 4 : y + 2, C_MG); }
     } break;
+    case 12: {  // falling sprinkles
+      static const uint16_t SC[5] = {0xFFFF, 0xFE60, 0x87F0, 0xF81F, 0x5D7F};
+      for (int i = 0; i < 18; i++) { uint32_t h = hsh(i + 151); int spd = 30 + h % 30;
+        int y = (int)((t / spd + h) % (MID_H + 6)) - 3, x = (int)(h % 86 + sin(t / 600.0f + i) * 3) % 88;
+        uint16_t c = (i % 3 == 0) ? C_MG : (i % 3 == 1) ? C_CY : SC[h % 5]; int ang = (t / 150 + i) % 4;
+        if (ang == 0) sp.fillRect(x, y, 4, 1, c); else if (ang == 1) sp.fillRect(x + 1, y - 1, 1, 4, c); else if (ang == 2) sp.drawLine(x, y, x + 3, y - 3, c); else sp.drawLine(x, y - 3, x + 3, y, c); }
+    } break;
     case 6: {  // swaying grass
       for (int i = 0; i < 18; i++) { uint32_t h = hsh(i + 13); int x = 2 + i * 5, len = 14 + h % 22; float sw = sin(t / 500.0f + i * 0.6f) * 3;
         uint16_t c = i & 1 ? C_CY : C_GRN; sp.drawLine(x, MID_H - 1, x + (int)sw, MID_H - 1 - len, c); sp.drawLine(x + 1, MID_H - 1, x + 1 + (int)sw, MID_H - 1 - len, c);
@@ -562,6 +587,7 @@ static const uint8_t TILE_GRASS[8] = {0x00, 0x00, 0x20, 0xA8, 0xA8, 0x00, 0x02, 
 static const uint8_t TILE_FLOWER[8] = {0x00, 0x20, 0x70, 0x20, 0x00, 0x02, 0x00, 0x00};
 static const uint8_t TILE_SNOW[8] = {0x00, 0x10, 0x54, 0x38, 0x54, 0x10, 0x00, 0x00};
 static const uint8_t TILE_NOTE[8] = {0x00, 0x0C, 0x0E, 0x0A, 0x08, 0x38, 0x38, 0x00};
+static const uint8_t TILE_SPRINKLE[8] = {0x00, 0x60, 0x00, 0x04, 0x04, 0x00, 0x30, 0x00};
 static const uint8_t TILE_LEAF[8] = {0x00, 0x10, 0x54, 0x7C, 0x38, 0x10, 0x10, 0x00};
 uint16_t bgAt(int x, int y, int h) {
   uint8_t p = THEMES[themeIdx].pat;
@@ -582,6 +608,7 @@ uint16_t bgAt(int x, int y, int h) {
     case P_LEAF: return tile(TILE_LEAF, 3) ? C_PAT : C_OFF;
     case P_LCD: return (x % 3 == 2 || y % 3 == 2) ? C_PAT : C_OFF;
     case P_STRIPE: return (((x + y) >> 2) & 1) ? C_PAT : C_OFF;
+    case P_SPRINKLE: return tile(TILE_SPRINKLE, 4) ? C_PAT : C_OFF;
     default: return C_OFF;
   }
 }

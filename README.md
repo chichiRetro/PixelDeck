@@ -6,7 +6,7 @@
 
 - 🖼 GIFアニメ / PNG / JPG / BMP を、LEDマトリクス風に表示
 - ✨ 静止画を自動でふわふわ上下させ、まわりに星がきらめくモーション機能
-- 🎨 **35種類のテーマ**（サイバー / かわいい / 冒険 / レトロ携帯機 / 季節 / バーチャルシンガー）
+- 🎨 **39種類のテーマ**（サイバー / かわいい / 冒険 / レトロ携帯機 / 季節 / バーチャルシンガー / スイーツ＆ピンク）
   — 色・背景の模様・右側のアニメーション装飾がまるごと切り替わります
 - 🔌 **USBでもWi-Fiでも操作**できる専用アプリ（HTMLファイル1つ、インストール不要）
 - ⚡ アプリから**ファームウェアの書き込みも完結**（ボードの種類を選んでボタンを押すだけ）
@@ -31,6 +31,7 @@
 ### テーマごとに変わるボード画面
 ![decorations](docs/images/decorations.png)
 ![themes on device](docs/images/themes_device.png)
+![sweets & pink](docs/images/themes_sweets.png)
 
 ---
 
@@ -78,8 +79,8 @@
 ```
 app/PixelDeck_Control.html          操作アプリ（ファームウェア内蔵・これ1つでOK）
 firmware/                           ファームウェア単体（.bin / アドレス 0x0 に書き込み）
-  PixelDeck_v1.0_CYD-USBC_ST7789.bin
-  PixelDeck_v1.0_CYD-microUSB_ILI9341.bin
+  PixelDeck_v1.1_CYD-USBC_ST7789.bin
+  PixelDeck_v1.1_CYD-microUSB_ILI9341.bin
 firmware-src/PixelDeck/             ファームウェアのソース（Arduino）
 docs/images/                        README用の画像
 third_party_licenses/               使用ライブラリのライセンス
@@ -108,4 +109,4 @@ third_party_licenses/               使用ライブラリのライセンス
 
 PXL//DECK turns the ESP32-2432S028 "Cheap Yellow Display" into a cyberpunk-styled pixel-art panel.
 Open `app/PixelDeck_Control.html` in Chrome/Edge, plug the board in via USB, go to **Firmware → EASY INSTALL**, pick your board type and click Install.
-Then connect via USB, set up Wi-Fi from the **Wi-Fi** tab, and drop images into **UPLOAD**. 35 themes, GIF animation, idle motion, USB & Wi-Fi control.
+Then connect via USB, set up Wi-Fi from the **Wi-Fi** tab, and drop images into **UPLOAD**. 39 themes, GIF animation, idle motion, USB & Wi-Fi control.

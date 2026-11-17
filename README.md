@@ -67,7 +67,7 @@
 | ネットワーク情報を表示 | ボード裏の BOOT ボタンを1回押す |
 | Wi-Fi設定を消す | BOOT を押したまま電源を入れて3秒 / アプリの「Wi-Fi設定を消去」 |
 
-- 画像は **128×128 px 以下** がおすすめ（16〜64 px のドット絵がいちばん映えます）
+- 画像は **96×96 px 以下** がおすすめ（16〜64 px のドット絵がいちばん映えます）
 - SDカードに直接入れる場合は `/pixel` フォルダに GIF / BMP を置いてください
   （PNG・JPG はアプリ経由で入れると自動変換されます）
 - Wi-Fi接続時は、ブラウザで `http://pxldeck.local`（またはボードに表示されるIP）からも操作できます
@@ -79,8 +79,8 @@
 ```
 app/PixelDeck_Control.html          操作アプリ（ファームウェア内蔵・これ1つでOK）
 firmware/                           ファームウェア単体（.bin / アドレス 0x0 に書き込み）
-  PixelDeck_v1.1_CYD-USBC_ST7789.bin
-  PixelDeck_v1.1_CYD-microUSB_ILI9341.bin
+  PixelDeck_v1.4_CYD-USBC_ST7789.bin
+  PixelDeck_v1.4_CYD-microUSB_ILI9341.bin
 firmware-src/PixelDeck/             ファームウェアのソース（Arduino）
 docs/images/                        README用の画像
 third_party_licenses/               使用ライブラリのライセンス

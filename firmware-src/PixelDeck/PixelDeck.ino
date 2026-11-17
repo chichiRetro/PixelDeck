@@ -36,8 +36,8 @@
 #define LED_GRID         true   // gaps between dots (LED-matrix look)
 #define RGB_LED_ENABLE   true   // pulse the on-board RGB LED
 #define HOSTNAME         "pxldeck"
-#define FW_VERSION       "1.1"
-#define MAX_IMG          128    // max image size (px)
+#define FW_VERSION       "1.4"
+#define MAX_IMG          96     // max image size (px) - keeps RAM free for Wi-Fi
 #define GLITCH_FX        false  // glitch transition effect
 #define MOTION_MS        180    // bob / sparkle frame time for still images
 // ====================================================
@@ -185,7 +185,7 @@ String errText = "";
 
 // ---- playback state ----
 uint32_t itemStart = 0, nextFrameAt = 0;
-bool gifOpen = false, gifLoopEnded = false;
+bool gifOpen = false, gifLoopEnded = false, gifSparksPicked = false;
 int romStep = 0;
 static const uint8_t ROM_SEQ[]  = {0, 2, 0, 2, 0, 2, 0, 1, 0, 2, 0, 2};
 static const uint16_t ROM_DUR[] = {500, 500, 500, 500, 500, 500, 900, 140, 500, 500, 500, 500};
@@ -514,7 +514,7 @@ void drawMid(uint32_t t) {
 }
 
 void tickDeco() {
-  static uint32_t last = 0; if (millis() - last < 50) return; last = millis();
+  static uint32_t last = 0; if (millis() - last < 60) return; last = millis();
   drawTop(millis()); drawMid(millis());
 }
 
@@ -613,7 +613,7 @@ uint16_t bgAt(int x, int y, int h) {
   }
 }
 
-bool motionActive() { return motion && imgValid && (items[cur].type == T_PNG || items[cur].type == T_BMP || items[cur].type == T_PXL); }
+bool motionActive() { return motion && imgValid && (items[cur].type == T_PNG || items[cur].type == T_BMP || items[cur].type == T_PXL || items[cur].type == T_GIF); }
 
 static const uint8_t BOB[] = {1, 1, 0, 0, 0, 1, 1, 1, 0, 0, 1, 1};   // 1 = rest, 0 = 1px up
 static inline uint16_t imgAt(int x, int y) { return (x < 0 || y < 0 || x >= imgW || y >= imgH) ? TKEY : img[y * imgW + x]; }
@@ -659,12 +659,27 @@ void renderArt(bool force) {
   int ox = ART_X + (ART_W - w * s) / 2, oy = ART_Y + (ART_H - h * s) / 2;
   int cell = (LED_GRID && s >= 4) ? s - 1 : s;
   if (force) clearArt();
+  // count changed dots; if many changed (e.g. the image moved), redraw row by row (much faster than per-dot)
+  int changed = 0;
+  if (!force) for (int i = 0; i < w * h; i++) if (shown[i] != src[i]) changed++;
   lcd.startWrite();
-  for (int y = 0; y < h; y++) for (int x = 0; x < w; x++) {
-    int i = y * w + x; uint16_t c = src[i];
-    if (!force && shown[i] == c) continue;
-    shown[i] = c;
-    lcd.fillRect(ox + x * s, oy + y * s, cell, cell, c == TKEY ? bgAt(x, y, h) : c);
+  if (force || changed > (w * h) / 6) {
+    static uint16_t line[ART_W];
+    for (int y = 0; y < h; y++) {
+      for (int x = 0; x < w; x++) {
+        int i = y * w + x; uint16_t c = src[i]; shown[i] = c;
+        uint16_t col = c == TKEY ? bgAt(x, y, h) : c;
+        for (int k = 0; k < s; k++) line[x * s + k] = k < cell ? col : C_BG;
+      }
+      for (int r = 0; r < cell; r++) lcd.pushImage(ox, oy + y * s + r, w * s, 1, (const lgfx::rgb565_t *)line);
+    }
+  } else if (changed) {
+    for (int y = 0; y < h; y++) for (int x = 0; x < w; x++) {
+      int i = y * w + x; uint16_t c = src[i];
+      if (shown[i] == c) continue;
+      shown[i] = c;
+      lcd.fillRect(ox + x * s, oy + y * s, cell, cell, c == TKEY ? bgAt(x, y, h) : c);
+    }
   }
   lcd.endWrite();
 }
@@ -787,7 +802,7 @@ bool loadGif(const Item &it) {
   if (!gif.open(p.c_str(), gOpen, gClose, gRead, gSeek, gDraw)) { showError("BAD GIF"); return false; }
   int w = gif.getCanvasWidth(), h = gif.getCanvasHeight();
   if (w < 1 || h < 1 || w > MAX_IMG || h > MAX_IMG) { gif.close(); showError("TOO BIG"); return false; }
-  gifOpen = true; gifLoopEnded = false; setSize(w, h); nextFrameAt = 0;
+  gifOpen = true; gifLoopEnded = false; gifSparksPicked = false; setSize(w, h); nextFrameAt = 0;
   return true;
 }
 
@@ -843,9 +858,10 @@ void tickPlayback() {
   if (!imgValid || uploading) return;
   uint32_t now = millis();
   const Item &it = items[cur];
-  if (motionActive() && now >= nextFrameAt) {
+  static uint32_t nextMotionAt = 0;
+  if (motionActive() && now >= nextMotionAt) {
     motionFrame++; if (!infoOverlay) renderArt(false);
-    nextFrameAt = now + MOTION_MS;
+    nextMotionAt = now + MOTION_MS;
   }
   if (it.type == T_ROM && now >= nextFrameAt) {
     romStep = (romStep + 1) % sizeof(ROM_SEQ);
@@ -854,6 +870,7 @@ void tickPlayback() {
   } else if (it.type == T_GIF && gifOpen && now >= nextFrameAt) {
     int delayMs = 100;
     int r = gif.playFrame(false, &delayMs);
+    if (!gifSparksPicked && motion) { pickSparks(); gifSparksPicked = true; }
     if (!infoOverlay) renderArt(false);
     if (delayMs < 20) delayMs = 100;
     nextFrameAt = now + delayMs;
@@ -1102,7 +1119,7 @@ void startAP() {
   WiFi.scanDelete();
   uint8_t mac[6]; WiFi.macAddress(mac);
   char b[20]; snprintf(b, sizeof(b), "PXL-DECK-%02X%02X", mac[4], mac[5]); apName = b;
-  WiFi.mode(WIFI_AP); WiFi.softAP(apName.c_str()); WiFi.setTxPower(WIFI_POWER_11dBm);
+  WiFi.mode(WIFI_AP); WiFi.softAP(apName.c_str());
   delay(200);
   dns.start(53, "*", WiFi.softAPIP());
   server.on("/", handleSetupRoot);
@@ -1115,7 +1132,7 @@ void startAP() {
 bool startSTA() {
   ssidSaved = prefs.getString("ssid", "");
   if (!ssidSaved.length()) return false;
-  WiFi.mode(WIFI_STA); WiFi.setHostname(HOSTNAME); WiFi.setTxPower(WIFI_POWER_11dBm);
+  WiFi.mode(WIFI_STA); WiFi.setHostname(HOSTNAME);
   WiFi.begin(ssidSaved.c_str(), prefs.getString("pass", "").c_str());
   uint32_t t = millis(); int dots = 0;
   while (WiFi.status() != WL_CONNECTED && millis() - t < 15000) {
@@ -1176,8 +1193,8 @@ void setup() {
   img = (uint16_t *)malloc(MAX_IMG * MAX_IMG * 2);
   shown = (uint16_t *)malloc(MAX_IMG * (MAX_IMG + 2) * 2);
   disp = (uint16_t *)malloc(MAX_IMG * (MAX_IMG + 2) * 2);
-  sTop.setColorDepth(8); sTop.createSprite(DW, TOP_H);
-  sMid.setColorDepth(8); sMid.createSprite(DW, MID_H);
+  sTop.setColorDepth(16); sTop.createSprite(DW, TOP_H);
+  sMid.setColorDepth(16); sMid.createSprite(DW, MID_H);
   gif.begin(GIF_PALETTE_RGB565_LE);
   motion = prefs.getBool("motion", true);
 

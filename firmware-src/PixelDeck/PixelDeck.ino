@@ -36,7 +36,7 @@
 #define LED_GRID         true   // gaps between dots (LED-matrix look)
 #define RGB_LED_ENABLE   true   // pulse the on-board RGB LED
 #define HOSTNAME         "pxldeck"
-#define FW_VERSION       "1.4"
+#define FW_VERSION       "1.5"
 #define MAX_IMG          96     // max image size (px) - keeps RAM free for Wi-Fi
 #define GLITCH_FX        false  // glitch transition effect
 #define MOTION_MS        180    // bob / sparkle frame time for still images
@@ -168,7 +168,8 @@ struct Item { String name; uint8_t type; uint32_t size; };
 std::vector<Item> items;
 int cur = 0;
 bool autoMode = true;
-bool motion = true;          // bob + sparkles for still images
+bool motion = true;
+int brightness = 220;        // backlight 10-255 (saved)          // bob + sparkles for still images
 int motionFrame = 0;
 struct Spark { uint8_t x, y, c, ph; };
 Spark sparks[12]; int nSparks = 0;
@@ -947,7 +948,7 @@ String infoJson() {
   const char *nm = netMode == NET_STA ? "sta" : netMode == NET_AP ? "ap" : "off";
   return String("{\"v\":\"") + FW_VERSION + "\",\"net\":\"" + nm + "\",\"ip\":\"" + ipText + "\",\"ssid\":\"" + jsonEsc(ssidSaved) +
          "\",\"ap\":\"" + apName + "\",\"host\":\"" HOSTNAME ".local\",\"theme\":" + themeIdx + ",\"themes\":" + THEME_COUNT +
-         ",\"auto\":" + (autoMode ? "true" : "false") + ",\"motion\":" + (motion ? "true" : "false") + ",\"sd\":" + (sdOK ? "true" : "false") +
+         ",\"auto\":" + (autoMode ? "true" : "false") + ",\"motion\":" + (motion ? "true" : "false") + ",\"bright\":" + String(brightness) + ",\"sd\":" + (sdOK ? "true" : "false") +
          ",\"total\":" + items.size() + ",\"idx\":" + cur + "}";
 }
 void setTheme(int t) {
@@ -956,6 +957,8 @@ void setTheme(int t) {
 }
 void handleList() { server.send(200, "application/json", listJson()); }
 void handleInfo() { server.send(200, "application/json", infoJson()); }
+void setBright(int b) { brightness = constrain(b, 10, 255); lcd.setBrightness(brightness); prefs.putInt("bright", brightness); }
+void handleBright() { setBright(server.arg("b").toInt()); server.send(200, "text/plain", "ok"); }
 void handleTheme() { setTheme(server.arg("t").toInt()); server.send(200, "text/plain", "ok"); }
 
 void handleImg() {
@@ -1079,6 +1082,7 @@ void serCommand(String l) {
   else if (cmd == "AUTO") { autoMode = !autoMode; itemStart = millis(); drawHud(); serOk(); }
   else if (cmd == "MOTION") { motion = !motion; prefs.putBool("motion", motion); showItem(cur, false); serOk(); }
   else if (cmd == "THEME") { setTheme(arg.toInt()); serOk(); }
+  else if (cmd == "BRIGHT") { setBright(arg.toInt()); serOk(); }
   else if (cmd == "SHOW") { int i = findItem(cleanName(arg)); if (i >= 0) { showItem(i); serOk(); } else serErr("notfound"); }
   else if (cmd == "DEL") {
     String n = cleanName(arg);
@@ -1146,6 +1150,7 @@ bool startSTA() {
   server.on("/api/list", handleList);
   server.on("/api/info", handleInfo);
   server.on("/api/theme", HTTP_POST, handleTheme);
+  server.on("/api/bright", HTTP_POST, handleBright);
   server.on("/img", handleImg);
   server.on("/api/show", HTTP_POST, handleShow);
   server.on("/api/next", HTTP_POST, handleNext);
@@ -1197,6 +1202,7 @@ void setup() {
   sMid.setColorDepth(16); sMid.createSprite(DW, MID_H);
   gif.begin(GIF_PALETTE_RGB565_LE);
   motion = prefs.getBool("motion", true);
+  brightness = constrain(prefs.getInt("bright", 220), 10, 255); lcd.setBrightness(brightness);
 
   // ---- boot console ----
   bootLine("PXL//DECK BIOS v" FW_VERSION "  (c) NEON-WORKS", C_MG);

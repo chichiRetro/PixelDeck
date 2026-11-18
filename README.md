@@ -64,6 +64,7 @@
 | 画像を入れる | アプリの「UPLOAD」に画像をドロップ（大きい画像は自動でドット絵化、白背景は自動で透明に） |
 | 次の画像 | 画面をタップ / アプリの NEXT |
 | 自動切替 ON/OFF | 画面を長押し（0.7秒）/ アプリの AUTO |
+| 明るさ調整 | アプリの CONTROL のスライダー |
 | ネットワーク情報を表示 | ボード裏の BOOT ボタンを1回押す |
 | Wi-Fi設定を消す | BOOT を押したまま電源を入れて3秒 / アプリの「Wi-Fi設定を消去」 |
 
@@ -79,8 +80,8 @@
 ```
 app/PixelDeck_Control.html          操作アプリ（ファームウェア内蔵・これ1つでOK）
 firmware/                           ファームウェア単体（.bin / アドレス 0x0 に書き込み）
-  PixelDeck_v1.4_CYD-USBC_ST7789.bin
-  PixelDeck_v1.4_CYD-microUSB_ILI9341.bin
+  PixelDeck_v1.5_CYD-USBC_ST7789.bin
+  PixelDeck_v1.5_CYD-microUSB_ILI9341.bin
 firmware-src/PixelDeck/             ファームウェアのソース（Arduino）
 docs/images/                        README用の画像
 third_party_licenses/               使用ライブラリのライセンス
